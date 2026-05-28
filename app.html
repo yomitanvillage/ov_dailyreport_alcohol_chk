@@ -6,236 +6,126 @@
 <title>公用車管理アプリ</title>
 <style>
   :root {
-    --primary: #1F4E79;
-    --primary-light: #D6E4F0;
-    --success: #375623;
-    --success-light: #E2EFDA;
-    --warning: #7B3F00;
-    --warning-light: #FCE4D6;
-    --danger: #C00000;
-    --danger-light: #FFE2E2;
-    --gray: #595959;
-    --gray-light: #F5F5F5;
-    --border: #D0D0D0;
-    --radius: 10px;
-    --radius-sm: 6px;
+    --primary: #1F4E79; --primary-light: #D6E4F0;
+    --success: #375623; --success-light: #E2EFDA;
+    --warning: #7B3F00; --warning-light: #FCE4D6;
+    --danger: #C00000; --danger-light: #FFE2E2;
+    --gray: #595959; --gray-light: #F5F5F5; --border: #D0D0D0;
+    --radius: 10px; --radius-sm: 6px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; background: #F0F4F8; color: #222; font-size: 15px; }
-
-  /* ナビ */
-  .nav { background: var(--primary); color: #fff; padding: 0; display: flex; }
-  .nav-btn { flex: 1; padding: 14px 4px; font-size: 12px; font-weight: bold; text-align: center; cursor: pointer; border: none; background: transparent; color: rgba(255,255,255,0.65); transition: background .2s; line-height: 1.4; }
-  .nav-btn.active { background: rgba(255,255,255,0.18); color: #fff; border-bottom: 3px solid #fff; }
-  .nav-btn i { display: block; font-size: 20px; margin-bottom: 2px; }
-
-  /* ページ */
-  .page { display: none; padding: 16px; max-width: 480px; margin: 0 auto; }
-  .page.active { display: block; }
-
-  /* カード */
-  .card { background: #fff; border-radius: var(--radius); border: 1px solid var(--border); padding: 16px; margin-bottom: 12px; }
-  .card-title { font-size: 12px; font-weight: bold; color: var(--gray); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-
-  /* フォーム */
-  .field { margin-bottom: 12px; }
-  .field:last-child { margin-bottom: 0; }
-  label { display: block; font-size: 12px; color: var(--gray); margin-bottom: 4px; font-weight: bold; }
-  input[type=text], input[type=number], input[type=time], select, textarea {
-    width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
-    font-size: 15px; font-family: inherit; background: #fff; color: #222;
-    -webkit-appearance: none; appearance: none;
-  }
-  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(31,78,121,0.12); }
-  textarea { height: 64px; resize: none; line-height: 1.5; }
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .required { color: var(--danger); margin-left: 2px; }
-
-  /* プリセット表示 */
-  .preset { background: var(--gray-light); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 15px; color: #222; display: flex; justify-content: space-between; align-items: center; }
-  .preset-note { font-size: 11px; color: var(--gray); background: var(--primary-light); padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
-  .preset.loading { color: var(--gray); font-style: italic; }
-
-  /* 点検トグル */
-  .check-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .check-row:last-child { border-bottom: none; }
-  .check-label { font-size: 14px; }
-  .toggle-wrap { position: relative; }
-  .toggle-wrap input[type=checkbox] { opacity: 0; width: 0; height: 0; position: absolute; }
-  .toggle-track { display: block; width: 44px; height: 24px; background: var(--border); border-radius: 12px; cursor: pointer; transition: background .2s; position: relative; }
-  .toggle-track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .2s; }
-  .toggle-wrap input:checked + .toggle-track { background: var(--success); }
-  .toggle-wrap input:checked + .toggle-track::after { transform: translateX(20px); }
-
-  /* 結果ボタン（酒気帯び） */
-  .result-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .result-btn { padding: 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: #fff; font-size: 15px; font-weight: bold; cursor: pointer; text-align: center; transition: all .15s; color: var(--gray); }
-  .result-btn.ok.selected { background: var(--success-light); border-color: var(--success); color: var(--success); }
-  .result-btn.ng.selected { background: var(--danger-light); border-color: var(--danger); color: var(--danger); }
-
-  /* タイミング選択 */
-  .timing-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-  .timing-btn { padding: 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: #fff; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; color: var(--gray); transition: all .15s; }
-  .timing-btn.selected { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
-
-  /* 送信ボタン */
-  .submit-btn { width: 100%; padding: 15px; border-radius: var(--radius); border: none; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 4px; transition: opacity .15s; }
-  .submit-btn:active { opacity: .8; }
-  .submit-btn.departure { background: var(--primary); color: #fff; }
-  .submit-btn.return-btn { background: var(--success); color: #fff; }
-  .submit-btn.alcohol { background: var(--warning); color: #fff; }
-  .submit-btn:disabled { opacity: .5; cursor: not-allowed; }
-
-  /* 計算結果 */
-  .calc-box { background: var(--success-light); border: 1px solid #A9D18E; border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-  .calc-label { font-size: 13px; color: var(--success); font-weight: bold; }
-  .calc-val { font-size: 24px; font-weight: bold; color: var(--success); }
-
-  /* アラート */
-  .alert { border-radius: var(--radius-sm); padding: 10px 12px; font-size: 13px; margin-bottom: 10px; }
-  .alert.info { background: var(--primary-light); color: var(--primary); border: 1px solid #A0C4E8; }
-  .alert.danger { background: var(--danger-light); color: var(--danger); border: 1px solid #FFAAAA; }
-  .alert.success { background: var(--success-light); color: var(--success); border: 1px solid #A9D18E; }
-
-  /* ミッションキー表示 */
-  .mission-key-box { background: #fff; border: 2px dashed var(--primary); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; text-align: center; }
-  .mission-key-label { font-size: 12px; color: var(--gray); margin-bottom: 4px; }
-  .mission-key-val { font-size: 18px; font-weight: bold; color: var(--primary); letter-spacing: .05em; font-family: monospace; }
-  .mission-key-note { font-size: 11px; color: var(--gray); margin-top: 6px; }
-
-  /* ローディング */
-  .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; }
-  .loading-overlay.active { display: flex; }
-  .spinner { width: 44px; height: 44px; border: 4px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* 完了画面 */
-  .success-screen { display: none; text-align: center; padding: 40px 20px; }
-  .success-screen.active { display: block; }
-  .success-icon { font-size: 60px; color: var(--success); margin-bottom: 16px; }
-  .success-title { font-size: 20px; font-weight: bold; margin-bottom: 8px; }
-  .success-sub { font-size: 14px; color: var(--gray); margin-bottom: 24px; }
-  .reset-btn { padding: 12px 32px; border-radius: var(--radius); border: 2px solid var(--primary); background: #fff; color: var(--primary); font-size: 15px; font-weight: bold; cursor: pointer; }
+  body { font-family: "Hiragino Kaku Gothic ProN","Meiryo",sans-serif; background:#F0F4F8; color:#222; font-size:15px; }
+  .nav { background:var(--primary); color:#fff; display:flex; }
+  .nav-btn { flex:1; padding:14px 4px; font-size:12px; font-weight:bold; text-align:center; cursor:pointer; border:none; background:transparent; color:rgba(255,255,255,0.65); line-height:1.4; }
+  .nav-btn.active { background:rgba(255,255,255,0.18); color:#fff; border-bottom:3px solid #fff; }
+  .nav-btn i { display:block; font-size:20px; margin-bottom:2px; }
+  .page { display:none; padding:16px; max-width:480px; margin:0 auto; }
+  .page.active { display:block; }
+  .card { background:#fff; border-radius:var(--radius); border:1px solid var(--border); padding:16px; margin-bottom:12px; }
+  .card-title { font-size:12px; font-weight:bold; color:var(--gray); text-transform:uppercase; letter-spacing:.05em; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+  .field { margin-bottom:12px; }
+  .field:last-child { margin-bottom:0; }
+  label { display:block; font-size:12px; color:var(--gray); margin-bottom:4px; font-weight:bold; }
+  input[type=text],input[type=number],input[type=time],select,textarea { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:15px; font-family:inherit; background:#fff; color:#222; -webkit-appearance:none; appearance:none; }
+  input:focus,select:focus,textarea:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(31,78,121,0.12); }
+  textarea { height:64px; resize:none; line-height:1.5; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .required { color:var(--danger); margin-left:2px; }
+  .preset { background:var(--gray-light); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px; font-size:15px; color:#222; display:flex; justify-content:space-between; align-items:center; }
+  .preset-note { font-size:11px; color:var(--gray); background:var(--primary-light); padding:2px 7px; border-radius:20px; white-space:nowrap; }
+  .preset.loading { color:var(--gray); font-style:italic; }
+  .check-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); }
+  .check-row:last-child { border-bottom:none; }
+  .check-label { font-size:14px; }
+  .toggle-wrap { position:relative; }
+  .toggle-wrap input[type=checkbox] { opacity:0; width:0; height:0; position:absolute; }
+  .toggle-track { display:block; width:44px; height:24px; background:var(--border); border-radius:12px; cursor:pointer; transition:background .2s; position:relative; }
+  .toggle-track::after { content:""; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:#fff; transition:transform .2s; }
+  .toggle-wrap input:checked + .toggle-track { background:var(--success); }
+  .toggle-wrap input:checked + .toggle-track::after { transform:translateX(20px); }
+  .result-group { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .result-btn { padding:14px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:#fff; font-size:15px; font-weight:bold; cursor:pointer; text-align:center; transition:all .15s; color:var(--gray); }
+  .result-btn.ok.selected { background:var(--success-light); border-color:var(--success); color:var(--success); }
+  .result-btn.ng.selected { background:var(--danger-light); border-color:var(--danger); color:var(--danger); }
+  .timing-group { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+  .timing-btn { padding:12px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:#fff; font-size:14px; font-weight:bold; cursor:pointer; text-align:center; color:var(--gray); transition:all .15s; }
+  .timing-btn.selected { background:var(--primary-light); border-color:var(--primary); color:var(--primary); }
+  .submit-btn { width:100%; padding:15px; border-radius:var(--radius); border:none; font-size:16px; font-weight:bold; cursor:pointer; margin-top:4px; transition:opacity .15s; }
+  .submit-btn:active { opacity:.8; }
+  .submit-btn.departure { background:var(--primary); color:#fff; }
+  .submit-btn.return-btn { background:var(--success); color:#fff; }
+  .submit-btn.alcohol { background:var(--warning); color:#fff; }
+  .submit-btn:disabled { opacity:.5; cursor:not-allowed; }
+  .calc-box { background:var(--success-light); border:1px solid #A9D18E; border-radius:var(--radius); padding:14px 16px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; }
+  .calc-label { font-size:13px; color:var(--success); font-weight:bold; }
+  .calc-val { font-size:24px; font-weight:bold; color:var(--success); }
+  .alert { border-radius:var(--radius-sm); padding:10px 12px; font-size:13px; margin-bottom:10px; }
+  .alert.info { background:var(--primary-light); color:var(--primary); border:1px solid #A0C4E8; }
+  .alert.danger { background:var(--danger-light); color:var(--danger); border:1px solid #FFAAAA; }
+  .alert.success { background:var(--success-light); color:var(--success); border:1px solid #A9D18E; }
+  .mission-key-box { background:#fff; border:2px dashed var(--primary); border-radius:var(--radius); padding:14px 16px; margin-bottom:12px; text-align:center; }
+  .mission-key-label { font-size:12px; color:var(--gray); margin-bottom:4px; }
+  .mission-key-val { font-size:18px; font-weight:bold; color:var(--primary); letter-spacing:.05em; font-family:monospace; }
+  .mission-key-note { font-size:11px; color:var(--gray); margin-top:6px; }
+  .loading-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:100; align-items:center; justify-content:center; }
+  .loading-overlay.active { display:flex; }
+  .spinner { width:44px; height:44px; border:4px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .success-screen { display:none; text-align:center; padding:40px 20px; }
+  .success-screen.active { display:block; }
+  .success-icon { font-size:60px; color:var(--success); margin-bottom:16px; }
+  .success-title { font-size:20px; font-weight:bold; margin-bottom:8px; }
+  .success-sub { font-size:14px; color:var(--gray); margin-bottom:24px; }
+  .reset-btn { padding:12px 32px; border-radius:var(--radius); border:2px solid var(--primary); background:#fff; color:var(--primary); font-size:15px; font-weight:bold; cursor:pointer; }
 </style>
 </head>
 <body>
 
-<!-- ナビゲーション -->
 <nav class="nav">
-  <button class="nav-btn active" onclick="switchPage('dep')" id="nav-dep">
-    <i>🚗</i>出発前
-  </button>
-  <button class="nav-btn" onclick="switchPage('ret')" id="nav-ret">
-    <i>🏠</i>帰庁後
-  </button>
-  <button class="nav-btn" onclick="switchPage('alc')" id="nav-alc">
-    <i>📋</i>アルコール
-  </button>
+  <button class="nav-btn active" onclick="switchPage('dep')" id="nav-dep"><i>🚗</i>出発前</button>
+  <button class="nav-btn" onclick="switchPage('ret')" id="nav-ret"><i>🏠</i>帰庁後</button>
+  <button class="nav-btn" onclick="switchPage('alc')" id="nav-alc"><i>📋</i>アルコール</button>
 </nav>
 
-<!-- ローディング -->
-<div class="loading-overlay" id="loading">
-  <div class="spinner"></div>
-</div>
+<div class="loading-overlay" id="loading"><div class="spinner"></div></div>
 
-<!-- ===== 出発前ページ ===== -->
+<!-- 出発前 -->
 <div class="page active" id="page-dep">
   <div id="dep-form">
     <div class="card">
       <div class="card-title">車両情報（QRから自動設定）</div>
-      <div class="field">
-        <label>車両名</label>
-        <div class="preset loading" id="dep-vehicle-name">読み込み中...</div>
-      </div>
-      <div class="field">
-        <label>車両番号</label>
-        <div class="preset" id="dep-vehicle-number">-</div>
-      </div>
-      <div class="field">
-        <label>前回帰庁メーター（前回記録より）</label>
-        <div class="preset" id="dep-last-meter">-</div>
-      </div>
+      <div class="field"><label>車両名</label><div class="preset loading" id="dep-vehicle-name">読み込み中...</div></div>
+      <div class="field"><label>車両番号</label><div class="preset" id="dep-vehicle-number">-</div></div>
+      <div class="field"><label>前回帰庁メーター（前回記録より）</label><div class="preset" id="dep-last-meter">-</div></div>
     </div>
-
     <div class="card">
       <div class="card-title">運転者情報</div>
       <div class="row2">
-        <div class="field">
-          <label>氏名<span class="required">*</span></label>
-          <input type="text" id="dep-name" placeholder="山田　太郎" autocomplete="name">
-        </div>
-        <div class="field">
-          <label>所属課<span class="required">*</span></label>
-          <select id="dep-dept"><option value="">選択してください</option></select>
-        </div>
+        <div class="field"><label>氏名<span class="required">*</span></label><input type="text" id="dep-name" placeholder="山田　太郎" autocomplete="name"></div>
+        <div class="field"><label>所属課<span class="required">*</span></label><select id="dep-dept"><option value="">選択してください</option></select></div>
       </div>
     </div>
-
     <div class="card">
       <div class="card-title">出発前記録</div>
       <div class="row2">
-        <div class="field">
-          <label>出発時刻<span class="required">*</span></label>
-          <input type="time" id="dep-time">
-        </div>
-        <div class="field">
-          <label>出発メーター(km)<span class="required">*</span></label>
-          <input type="number" id="dep-meter" placeholder="12480" min="0">
-        </div>
+        <div class="field"><label>出発時刻<span class="required">*</span></label><input type="time" id="dep-time"></div>
+        <div class="field"><label>出発メーター(km)<span class="required">*</span></label><input type="number" id="dep-meter" placeholder="12480" min="0"></div>
       </div>
-      <div class="field">
-        <label>行き先<span class="required">*</span></label>
-        <input type="text" id="dep-dest" placeholder="例：○○市役所">
-      </div>
-      <div class="field">
-        <label>使用目的<span class="required">*</span></label>
-        <input type="text" id="dep-purpose" placeholder="例：会議出席">
-      </div>
+      <div class="field"><label>行き先<span class="required">*</span></label><input type="text" id="dep-dest" placeholder="例：○○市役所"></div>
+      <div class="field"><label>使用目的<span class="required">*</span></label><input type="text" id="dep-purpose" placeholder="例：会議出席"></div>
       <div class="row2">
-        <div class="field">
-          <label>搭乗人数</label>
-          <select id="dep-passengers">
-            <option value="1名">1名</option>
-            <option value="2名">2名</option>
-            <option value="3名">3名</option>
-            <option value="4名以上">4名以上</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>燃料残量</label>
-          <select id="dep-fuel">
-            <option value="半分以上">半分以上</option>
-            <option value="半分未満">半分未満</option>
-          </select>
-        </div>
+        <div class="field"><label>搭乗人数</label><select id="dep-passengers"><option value="1名">1名</option><option value="2名">2名</option><option value="3名">3名</option><option value="4名以上">4名以上</option></select></div>
+        <div class="field"><label>燃料残量</label><select id="dep-fuel"><option value="半分以上">半分以上</option><option value="半分未満">半分未満</option></select></div>
       </div>
     </div>
-
     <div class="card">
       <div class="card-title">出発前点検</div>
-      <div class="check-row">
-        <span class="check-label">車体の損傷　異常なし</span>
-        <label class="toggle-wrap">
-          <input type="checkbox" id="dep-body-check">
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="check-row">
-        <span class="check-label">タイヤ（空気圧）　異常なし</span>
-        <label class="toggle-wrap">
-          <input type="checkbox" id="dep-tire-check">
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="field" style="margin-top:12px;">
-        <label>特記事項（損傷等あれば記載）</label>
-        <textarea id="dep-notes" placeholder="異常があれば記載"></textarea>
-      </div>
+      <div class="check-row"><span class="check-label">車体の損傷　異常なし</span><label class="toggle-wrap"><input type="checkbox" id="dep-body-check"><span class="toggle-track"></span></label></div>
+      <div class="check-row"><span class="check-label">タイヤ（空気圧）　異常なし</span><label class="toggle-wrap"><input type="checkbox" id="dep-tire-check"><span class="toggle-track"></span></label></div>
+      <div class="field" style="margin-top:12px;"><label>特記事項</label><textarea id="dep-notes" placeholder="異常があれば記載"></textarea></div>
     </div>
-
     <button class="submit-btn departure" onclick="submitDeparture()">出発前記録を送信</button>
   </div>
-
   <div class="success-screen" id="dep-success">
     <div class="success-icon">✅</div>
     <div class="success-title">出発前記録を送信しました</div>
@@ -243,169 +133,91 @@
     <div class="mission-key-box">
       <div class="mission-key-label">乗務キー（帰庁後記録で使用）</div>
       <div class="mission-key-val" id="dep-mission-key-display"></div>
-      <div class="mission-key-note">このキーをメモするか、画面のスクリーンショットを保存してください</div>
+      <div class="mission-key-note">このキーをメモするか、スクリーンショットを保存してください</div>
     </div>
     <button class="reset-btn" onclick="resetDep()">新しい記録を開始</button>
   </div>
 </div>
 
-<!-- ===== 帰庁後ページ ===== -->
+<!-- 帰庁後 -->
 <div class="page" id="page-ret">
   <div id="ret-form">
     <div class="alert info">帰庁後に車内で入力してください。乗務キーで出発前記録と自動紐づけします。</div>
-
     <div class="card">
       <div class="card-title">乗務キーの入力</div>
-      <div class="field">
-        <label>乗務キー<span class="required">*</span></label>
-        <input type="text" id="ret-key" placeholder="例：V001-20250522-0900" style="font-family:monospace;">
-      </div>
-      <div id="ret-matched-info" style="display:none;" class="alert success"></div>
+      <div class="field"><label>乗務キー<span class="required">*</span></label><input type="text" id="ret-key" placeholder="例：V001-20250522-0900" style="font-family:monospace;"></div>
     </div>
-
     <div class="card">
       <div class="card-title">帰庁後記録</div>
       <div class="row2">
-        <div class="field">
-          <label>帰庁時刻<span class="required">*</span></label>
-          <input type="time" id="ret-time">
-        </div>
-        <div class="field">
-          <label>帰庁メーター(km)<span class="required">*</span></label>
-          <input type="number" id="ret-meter" placeholder="12534" min="0" oninput="calcDistance()">
-        </div>
+        <div class="field"><label>帰庁時刻<span class="required">*</span></label><input type="time" id="ret-time"></div>
+        <div class="field"><label>帰庁メーター(km)<span class="required">*</span></label><input type="number" id="ret-meter" placeholder="12534" min="0" oninput="calcDistance()"></div>
       </div>
       <div class="row2">
-        <div class="field">
-          <label>燃料残量</label>
-          <select id="ret-fuel">
-            <option value="半分以上">半分以上</option>
-            <option value="半分未満">半分未満</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>給油量(L)</label>
-          <input type="number" id="ret-refuel" placeholder="0" min="0" step="0.1">
-        </div>
+        <div class="field"><label>燃料残量</label><select id="ret-fuel"><option value="半分以上">半分以上</option><option value="半分未満">半分未満</option></select></div>
+        <div class="field"><label>給油量(L)</label><input type="number" id="ret-refuel" placeholder="0" min="0" step="0.1"></div>
       </div>
     </div>
-
     <div class="calc-box" id="calc-box" style="display:none;">
       <span class="calc-label">🛣 走行距離（自動計算）</span>
       <span class="calc-val" id="calc-distance">- km</span>
     </div>
-
     <div class="card">
       <div class="card-title">帰庁後点検</div>
-      <div class="check-row">
-        <span class="check-label">車体の損傷　異常なし</span>
-        <label class="toggle-wrap">
-          <input type="checkbox" id="ret-body-check">
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="check-row">
-        <span class="check-label">タイヤ（空気圧）　異常なし</span>
-        <label class="toggle-wrap">
-          <input type="checkbox" id="ret-tire-check">
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="field" style="margin-top:12px;">
-        <label>特記事項（損傷・不具合等）</label>
-        <textarea id="ret-notes" placeholder="異常があれば記載"></textarea>
-      </div>
+      <div class="check-row"><span class="check-label">車体の損傷　異常なし</span><label class="toggle-wrap"><input type="checkbox" id="ret-body-check"><span class="toggle-track"></span></label></div>
+      <div class="check-row"><span class="check-label">タイヤ（空気圧）　異常なし</span><label class="toggle-wrap"><input type="checkbox" id="ret-tire-check"><span class="toggle-track"></span></label></div>
+      <div class="field" style="margin-top:12px;"><label>特記事項</label><textarea id="ret-notes" placeholder="異常があれば記載"></textarea></div>
     </div>
-
     <button class="submit-btn return-btn" onclick="submitReturn()">帰庁後記録を送信</button>
   </div>
-
   <div class="success-screen" id="ret-success">
     <div class="success-icon">✅</div>
     <div class="success-title">帰庁後記録を送信しました</div>
-    <div class="success-sub">執務室でアルコールチェックを行い、「アルコール」タブから結果を記録してください</div>
+    <div class="success-sub">執務室でアルコールチェックを行い「アルコール」タブから記録してください</div>
     <button class="reset-btn" onclick="resetRet()">新しい記録を開始</button>
   </div>
 </div>
 
-<!-- ===== アルコールチェックページ ===== -->
+<!-- アルコール -->
 <div class="page" id="page-alc">
   <div id="alc-form">
     <div class="card">
       <div class="card-title">記録タイミング</div>
       <div class="timing-group">
-        <button class="timing-btn selected" onclick="selectTiming('乗車前', this)">🚗 乗車前</button>
-        <button class="timing-btn" onclick="selectTiming('帰庁後', this)">🏠 帰庁後</button>
+        <button class="timing-btn selected" onclick="selectTiming('乗車前',this)">🚗 乗車前</button>
+        <button class="timing-btn" onclick="selectTiming('帰庁後',this)">🏠 帰庁後</button>
       </div>
       <div class="row2">
-        <div class="field">
-          <label>運転者氏名<span class="required">*</span></label>
-          <input type="text" id="alc-name" placeholder="山田　太郎">
-        </div>
-        <div class="field">
-          <label>所属課<span class="required">*</span></label>
-          <select id="alc-dept"><option value="">選択してください</option></select>
-        </div>
+        <div class="field"><label>運転者氏名<span class="required">*</span></label><input type="text" id="alc-name" placeholder="山田　太郎"></div>
+        <div class="field"><label>所属課<span class="required">*</span></label><select id="alc-dept"><option value="">選択してください</option></select></div>
       </div>
-      <div class="field">
-        <label>使用車両<span class="required">*</span></label>
-        <select id="alc-vehicle"><option value="">選択してください</option></select>
-      </div>
+      <div class="field"><label>使用車両<span class="required">*</span></label><select id="alc-vehicle"><option value="">選択してください</option></select></div>
     </div>
-
     <div class="card">
       <div class="card-title">チェック結果</div>
       <div class="row2">
-        <div class="field">
-          <label>点呼時刻<span class="required">*</span></label>
-          <input type="time" id="alc-time">
-        </div>
-        <div class="field">
-          <label>検知値 (mg/L)<span class="required">*</span></label>
-          <input type="number" id="alc-value" placeholder="0.000" step="0.001" min="0">
-        </div>
+        <div class="field"><label>点呼時刻<span class="required">*</span></label><input type="time" id="alc-time"></div>
+        <div class="field"><label>検知値 (mg/L)<span class="required">*</span></label><input type="number" id="alc-value" placeholder="0.000" step="0.001" min="0"></div>
       </div>
       <div class="field">
         <label>酒気帯びの有無<span class="required">*</span></label>
         <div class="result-group">
-          <button class="result-btn ok" onclick="selectAlcResult('なし', this)">✓　なし</button>
-          <button class="result-btn ng" onclick="selectAlcResult('あり', this)">⚠　あり</button>
+          <button class="result-btn ok" onclick="selectAlcResult('なし',this)">✓　なし</button>
+          <button class="result-btn ng" onclick="selectAlcResult('あり',this)">⚠　あり</button>
         </div>
       </div>
     </div>
-
     <div class="card">
       <div class="card-title">点呼方法・確認者</div>
       <div class="row2">
-        <div class="field">
-          <label>点呼方法<span class="required">*</span></label>
-          <select id="alc-method">
-            <option value="対面">対面</option>
-            <option value="電話確認">電話確認</option>
-            <option value="その他">その他</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>検知器の使用</label>
-          <select id="alc-detector">
-            <option value="あり">あり</option>
-            <option value="なし">なし</option>
-          </select>
-        </div>
+        <div class="field"><label>点呼方法<span class="required">*</span></label><select id="alc-method"><option value="対面">対面</option><option value="電話確認">電話確認</option><option value="その他">その他</option></select></div>
+        <div class="field"><label>検知器の使用</label><select id="alc-detector"><option value="あり">あり</option><option value="なし">なし</option></select></div>
       </div>
-      <div class="field">
-        <label>確認者氏名<span class="required">*</span></label>
-        <input type="text" id="alc-confirmer" placeholder="確認者の氏名">
-      </div>
-      <div class="field">
-        <label>指示事項・その他</label>
-        <textarea id="alc-notes" placeholder="特記事項があれば記載"></textarea>
-      </div>
+      <div class="field"><label>確認者氏名<span class="required">*</span></label><input type="text" id="alc-confirmer" placeholder="確認者の氏名"></div>
+      <div class="field"><label>指示事項・その他</label><textarea id="alc-notes" placeholder="特記事項があれば記載"></textarea></div>
     </div>
-
     <button class="submit-btn alcohol" onclick="submitAlcohol()">アルコールチェックを記録する</button>
   </div>
-
   <div class="success-screen" id="alc-success">
     <div class="success-icon">✅</div>
     <div class="success-title">アルコールチェックを記録しました</div>
@@ -416,11 +228,10 @@
 
 <script>
 // ============================================================
-// 設定：GASのデプロイURLをここに入力
+// 設定
 // ============================================================
 const GAS_URL = "https://script.google.com/macros/s/AKfycbyN1TrCfrKNTKl_NJ7ITvg5J3XgUMSnge_tC0qmo8qp9MJMlMPcWIT1_4sgVZs154f0/exec";
 
-// QRパラメータから車両情報を取得
 const urlParams = new URLSearchParams(window.location.search);
 const VEHICLE_ID   = urlParams.get("vid") || "";
 const VEHICLE_NAME = urlParams.get("vname") || "";
@@ -429,8 +240,16 @@ const VEHICLE_NUM  = urlParams.get("vnum") || "";
 let alcTiming = "乗車前";
 let alcResult = "";
 let masters = { vehicles: [], depts: [] };
-let depMissionKey = "";
 let depMeter = 0;
+
+// ============================================================
+// GETリクエストのヘルパー（すべてGETで統一）
+// ============================================================
+async function gasGet(params) {
+  const url = GAS_URL + "?" + new URLSearchParams(params).toString();
+  const res = await fetch(url);
+  return res.json();
+}
 
 // ============================================================
 // 初期化
@@ -439,9 +258,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   setCurrentTime("dep-time");
   setCurrentTime("ret-time");
   setCurrentTime("alc-time");
-
   await loadMasters();
-
   if (VEHICLE_ID) {
     setVehiclePreset();
     await loadLastMeter();
@@ -455,27 +272,24 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 function setCurrentTime(id) {
   const now = new Date();
-  const hh = String(now.getHours()).padStart(2, "0");
-  const mm = String(now.getMinutes()).padStart(2, "0");
-  document.getElementById(id).value = `${hh}:${mm}`;
+  document.getElementById(id).value =
+    String(now.getHours()).padStart(2,"0") + ":" + String(now.getMinutes()).padStart(2,"0");
 }
 
 async function loadMasters() {
   try {
-    const res = await fetch(`${GAS_URL}?action=getMasters`);
-    masters = await res.json();
-
-    populateSelect("dep-dept", masters.depts, "name", "name");
-    populateSelect("alc-dept", masters.depts, "name", "name");
-    populateSelect("alc-vehicle", masters.vehicles, "id", "name");
-  } catch (e) {
-    console.error("マスタ読み込みエラー:", e);
-  }
+    const data = await gasGet({ action: "getMasters" });
+    if (!data.vehicles) return;
+    masters = data;
+    populateSelect("dep-dept",   masters.depts,    "name", "name");
+    populateSelect("alc-dept",   masters.depts,    "name", "name");
+    populateSelect("alc-vehicle",masters.vehicles, "id",   "name");
+  } catch(e) { console.error("マスタ読み込みエラー:", e); }
 }
 
 function populateSelect(id, items, valKey, labelKey) {
   const sel = document.getElementById(id);
-  items.forEach(item => {
+  (items||[]).forEach(item => {
     const opt = document.createElement("option");
     opt.value = item[valKey];
     opt.textContent = item[labelKey];
@@ -485,39 +299,24 @@ function populateSelect(id, items, valKey, labelKey) {
 
 function setVehiclePreset() {
   const nameEl = document.getElementById("dep-vehicle-name");
-  nameEl.textContent = VEHICLE_NAME || "不明";
   nameEl.classList.remove("loading");
-  const noteSpan = document.createElement("span");
-  noteSpan.className = "preset-note";
-  noteSpan.textContent = "自動";
-  nameEl.appendChild(noteSpan);
-
-  const numEl = document.getElementById("dep-vehicle-number");
-  numEl.textContent = VEHICLE_NUM || "-";
-  const noteSpan2 = document.createElement("span");
-  noteSpan2.className = "preset-note";
-  noteSpan2.textContent = "自動";
-  numEl.appendChild(noteSpan2);
+  nameEl.innerHTML = (VEHICLE_NAME||"不明") + ' <span class="preset-note">自動</span>';
+  document.getElementById("dep-vehicle-number").innerHTML =
+    (VEHICLE_NUM||"-") + ' <span class="preset-note">自動</span>';
 }
 
 async function loadLastMeter() {
   try {
-    const res = await fetch(`${GAS_URL}?action=getLastMeter&vehicleId=${VEHICLE_ID}`);
-    const data = await res.json();
+    const data = await gasGet({ action: "getLastMeter", vehicleId: VEHICLE_ID });
     const el = document.getElementById("dep-last-meter");
     if (data.lastMeter && data.lastMeter > 0) {
-      el.textContent = `${Number(data.lastMeter).toLocaleString()} km`;
       depMeter = data.lastMeter;
+      el.innerHTML = Number(data.lastMeter).toLocaleString() + " km" +
+        ' <span class="preset-note">自動取得</span>';
     } else {
-      el.textContent = "記録なし（初回）";
+      el.innerHTML = "記録なし（初回）" + ' <span class="preset-note">自動取得</span>';
     }
-    const note = document.createElement("span");
-    note.className = "preset-note";
-    note.textContent = "自動取得";
-    el.appendChild(note);
-  } catch (e) {
-    document.getElementById("dep-last-meter").textContent = "取得失敗";
-  }
+  } catch(e) { document.getElementById("dep-last-meter").textContent = "取得失敗"; }
 }
 
 // ============================================================
@@ -526,233 +325,172 @@ async function loadLastMeter() {
 function switchPage(page) {
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-  document.getElementById(`page-${page}`).classList.add("active");
-  document.getElementById(`nav-${page}`).classList.add("active");
+  document.getElementById("page-"+page).classList.add("active");
+  document.getElementById("nav-"+page).classList.add("active");
 }
 
 // ============================================================
 // 出発前送信
 // ============================================================
 async function submitDeparture() {
-  const name = document.getElementById("dep-name").value.trim();
-  const dept = document.getElementById("dep-dept").value;
-  const time = document.getElementById("dep-time").value;
-  const meter = document.getElementById("dep-meter").value;
-  const dest = document.getElementById("dep-dest").value.trim();
-  const purpose = document.getElementById("dep-purpose").value.trim();
-
-  if (!name || !dept || !time || !meter || !dest || !purpose) {
-    alert("必須項目（氏名・所属課・出発時刻・出発メーター・行き先・使用目的）を入力してください。");
-    return;
+  const name   = document.getElementById("dep-name").value.trim();
+  const dept   = document.getElementById("dep-dept").value;
+  const time   = document.getElementById("dep-time").value;
+  const meter  = document.getElementById("dep-meter").value;
+  const dest   = document.getElementById("dep-dest").value.trim();
+  const purpose= document.getElementById("dep-purpose").value.trim();
+  if (!name||!dept||!time||!meter||!dest||!purpose) {
+    alert("必須項目（氏名・所属課・出発時刻・出発メーター・行き先・使用目的）を入力してください。"); return;
   }
-  if (!VEHICLE_ID) {
-    alert("車両QRコードから起動してください。");
-    return;
-  }
+  if (!VEHICLE_ID) { alert("車両QRコードから起動してください。"); return; }
 
   showLoading(true);
   try {
-    const res = await fetch(GAS_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "submitDeparture",
-        vehicleId: VEHICLE_ID,
-        vehicleName: VEHICLE_NAME,
-        vehicleNumber: VEHICLE_NUM,
-        driverName: name,
-        department: dept,
-        departureTime: time,
-        departureMeter: Number(meter),
-        destination: dest,
-        purpose: purpose,
-        passengers: document.getElementById("dep-passengers").value,
-        fuelDeparture: document.getElementById("dep-fuel").value,
-        inspectionBodyDep: document.getElementById("dep-body-check").checked ? "異常なし" : "要確認",
-        inspectionTireDep: document.getElementById("dep-tire-check").checked ? "異常なし" : "要確認",
-        notesDep: document.getElementById("dep-notes").value.trim(),
-      })
+    const data = await gasGet({
+      action: "submitDeparture",
+      vehicleId: VEHICLE_ID, vehicleName: VEHICLE_NAME, vehicleNumber: VEHICLE_NUM,
+      driverName: name, department: dept,
+      departureTime: time, departureMeter: meter,
+      destination: dest, purpose: purpose,
+      passengers: document.getElementById("dep-passengers").value,
+      fuelDeparture: document.getElementById("dep-fuel").value,
+      inspectionBodyDep: document.getElementById("dep-body-check").checked ? "異常なし" : "要確認",
+      inspectionTireDep: document.getElementById("dep-tire-check").checked ? "異常なし" : "要確認",
+      notesDep: document.getElementById("dep-notes").value.trim()
     });
-    const data = await res.json();
     if (data.success) {
-      depMissionKey = data.missionKey;
       document.getElementById("dep-mission-key-display").textContent = data.missionKey;
       document.getElementById("dep-form").style.display = "none";
       document.getElementById("dep-success").classList.add("active");
     } else {
-      alert(`送信エラー：${data.error}`);
+      alert("送信エラー：" + data.error);
     }
-  } catch (e) {
-    alert("通信エラーが発生しました。電波状況を確認してください。");
-  } finally {
-    showLoading(false);
-  }
+  } catch(e) { alert("通信エラーが発生しました。電波状況を確認してください。"); }
+  finally { showLoading(false); }
 }
 
 // ============================================================
 // 帰庁後送信
 // ============================================================
 function calcDistance() {
-  const retMeter = Number(document.getElementById("ret-meter").value);
   const key = document.getElementById("ret-key").value.trim();
+  const retMeter = Number(document.getElementById("ret-meter").value);
   if (retMeter > 0 && key) {
-    const parts = key.split("-");
     document.getElementById("calc-box").style.display = "flex";
-    document.getElementById("calc-distance").textContent = "入力後に確認";
+    document.getElementById("calc-distance").textContent = "送信後に確定";
   }
 }
 
 async function submitReturn() {
-  const key = document.getElementById("ret-key").value.trim();
-  const time = document.getElementById("ret-time").value;
+  const key   = document.getElementById("ret-key").value.trim();
+  const time  = document.getElementById("ret-time").value;
   const meter = document.getElementById("ret-meter").value;
-
-  if (!key || !time || !meter) {
-    alert("必須項目（乗務キー・帰庁時刻・帰庁メーター）を入力してください。");
-    return;
+  if (!key||!time||!meter) {
+    alert("必須項目（乗務キー・帰庁時刻・帰庁メーター）を入力してください。"); return;
   }
-
   showLoading(true);
   try {
-    const vehicleId = key.split("-")[0];
-    const res = await fetch(GAS_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "submitReturn",
-        missionKey: key,
-        vehicleId: vehicleId,
-        returnTime: time,
-        returnMeter: Number(meter),
-        fuelReturn: document.getElementById("ret-fuel").value,
-        refuelAmount: Number(document.getElementById("ret-refuel").value) || 0,
-        inspectionBodyRet: document.getElementById("ret-body-check").checked ? "異常なし" : "要確認",
-        inspectionTireRet: document.getElementById("ret-tire-check").checked ? "異常なし" : "要確認",
-        notesRet: document.getElementById("ret-notes").value.trim(),
-      })
+    const data = await gasGet({
+      action: "submitReturn",
+      missionKey: key,
+      vehicleId: key.split("-")[0],
+      returnTime: time, returnMeter: meter,
+      fuelReturn: document.getElementById("ret-fuel").value,
+      refuelAmount: document.getElementById("ret-refuel").value || "0",
+      inspectionBodyRet: document.getElementById("ret-body-check").checked ? "異常なし" : "要確認",
+      inspectionTireRet: document.getElementById("ret-tire-check").checked ? "異常なし" : "要確認",
+      notesRet: document.getElementById("ret-notes").value.trim()
     });
-    const data = await res.json();
     if (data.success) {
       document.getElementById("ret-form").style.display = "none";
       document.getElementById("ret-success").classList.add("active");
     } else {
-      alert(`送信エラー：${data.error}`);
+      alert("送信エラー：" + data.error);
     }
-  } catch (e) {
-    alert("通信エラーが発生しました。電波状況を確認してください。");
-  } finally {
-    showLoading(false);
-  }
+  } catch(e) { alert("通信エラーが発生しました。電波状況を確認してください。"); }
+  finally { showLoading(false); }
 }
 
 // ============================================================
 // アルコールチェック送信
 // ============================================================
-function selectTiming(timing, btn) {
-  alcTiming = timing;
+function selectTiming(t, btn) {
+  alcTiming = t;
   document.querySelectorAll(".timing-btn").forEach(b => b.classList.remove("selected"));
   btn.classList.add("selected");
 }
-
-function selectAlcResult(result, btn) {
-  alcResult = result;
+function selectAlcResult(r, btn) {
+  alcResult = r;
   document.querySelectorAll(".result-btn").forEach(b => b.classList.remove("selected"));
   btn.classList.add("selected");
 }
 
 async function submitAlcohol() {
-  const name = document.getElementById("alc-name").value.trim();
-  const dept = document.getElementById("alc-dept").value;
-  const vehicle = document.getElementById("alc-vehicle").value;
-  const time = document.getElementById("alc-time").value;
-  const value = document.getElementById("alc-value").value;
+  const name      = document.getElementById("alc-name").value.trim();
+  const dept      = document.getElementById("alc-dept").value;
+  const vehicle   = document.getElementById("alc-vehicle").value;
+  const time      = document.getElementById("alc-time").value;
+  const value     = document.getElementById("alc-value").value;
   const confirmer = document.getElementById("alc-confirmer").value.trim();
-
-  if (!name || !dept || !vehicle || !time || value === "" || !alcResult || !confirmer) {
-    alert("必須項目（氏名・所属課・使用車両・点呼時刻・検知値・酒気帯び有無・確認者）を入力してください。");
-    return;
+  if (!name||!dept||!vehicle||!time||value===""||!alcResult||!confirmer) {
+    alert("必須項目（氏名・所属課・使用車両・点呼時刻・検知値・酒気帯び有無・確認者）を入力してください。"); return;
   }
-
   showLoading(true);
   try {
-    const vehicleObj = masters.vehicles.find(v => v.id === vehicle);
-    const res = await fetch(GAS_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "submitAlcohol",
-        driverName: name,
-        department: dept,
-        vehicleName: vehicleObj ? vehicleObj.name : vehicle,
-        timing: alcTiming,
-        checkTime: time,
-        alcoholValue: Number(value),
-        hasAlcohol: alcResult,
-        callMethod: document.getElementById("alc-method").value,
-        hasDetector: document.getElementById("alc-detector").value,
-        confirmerName: confirmer,
-        notes: document.getElementById("alc-notes").value.trim(),
-      })
+    const vehicleObj = (masters.vehicles||[]).find(v => v.id === vehicle);
+    const data = await gasGet({
+      action: "submitAlcohol",
+      driverName: name, department: dept,
+      vehicleName: vehicleObj ? vehicleObj.name : vehicle,
+      timing: alcTiming, checkTime: time,
+      alcoholValue: value, hasAlcohol: alcResult,
+      callMethod: document.getElementById("alc-method").value,
+      hasDetector: document.getElementById("alc-detector").value,
+      confirmerName: confirmer,
+      notes: document.getElementById("alc-notes").value.trim()
     });
-    const data = await res.json();
     if (data.success) {
-      const sub = alcResult === "あり"
-        ? "⚠ 酒気帯びが確認されました。管理者に報告し、乗車を見合わせてください。"
-        : `${alcTiming}のチェックが完了しました。`;
-      document.getElementById("alc-success-sub").textContent = sub;
+      document.getElementById("alc-success-sub").textContent =
+        alcResult === "あり"
+          ? "⚠ 酒気帯びが確認されました。管理者に報告し、乗車を見合わせてください。"
+          : alcTiming + "のチェックが完了しました。";
       document.getElementById("alc-form").style.display = "none";
       document.getElementById("alc-success").classList.add("active");
     } else {
-      alert(`送信エラー：${data.error}`);
+      alert("送信エラー：" + data.error);
     }
-  } catch (e) {
-    alert("通信エラーが発生しました。電波状況を確認してください。");
-  } finally {
-    showLoading(false);
-  }
+  } catch(e) { alert("通信エラーが発生しました。電波状況を確認してください。"); }
+  finally { showLoading(false); }
 }
 
 // ============================================================
-// リセット・ユーティリティ
+// リセット
 // ============================================================
 function resetDep() {
   document.getElementById("dep-form").style.display = "";
   document.getElementById("dep-success").classList.remove("active");
-  document.getElementById("dep-name").value = "";
-  document.getElementById("dep-meter").value = "";
-  document.getElementById("dep-dest").value = "";
-  document.getElementById("dep-purpose").value = "";
-  document.getElementById("dep-notes").value = "";
+  ["dep-name","dep-meter","dep-dest","dep-purpose","dep-notes"].forEach(id => document.getElementById(id).value = "");
   document.getElementById("dep-body-check").checked = false;
   document.getElementById("dep-tire-check").checked = false;
   setCurrentTime("dep-time");
 }
-
 function resetRet() {
   document.getElementById("ret-form").style.display = "";
   document.getElementById("ret-success").classList.remove("active");
-  document.getElementById("ret-key").value = "";
-  document.getElementById("ret-meter").value = "";
-  document.getElementById("ret-refuel").value = "";
-  document.getElementById("ret-notes").value = "";
+  ["ret-key","ret-meter","ret-refuel","ret-notes"].forEach(id => document.getElementById(id).value = "");
   document.getElementById("ret-body-check").checked = false;
   document.getElementById("ret-tire-check").checked = false;
   document.getElementById("calc-box").style.display = "none";
   setCurrentTime("ret-time");
 }
-
 function resetAlc() {
   document.getElementById("alc-form").style.display = "";
   document.getElementById("alc-success").classList.remove("active");
-  document.getElementById("alc-name").value = "";
-  document.getElementById("alc-value").value = "";
-  document.getElementById("alc-confirmer").value = "";
-  document.getElementById("alc-notes").value = "";
+  ["alc-name","alc-value","alc-confirmer","alc-notes"].forEach(id => document.getElementById(id).value = "");
   alcResult = "";
   document.querySelectorAll(".result-btn").forEach(b => b.classList.remove("selected"));
   setCurrentTime("alc-time");
 }
-
 function showLoading(show) {
   document.getElementById("loading").classList.toggle("active", show);
 }
