@@ -108,7 +108,7 @@ textarea { height:64px; resize:none; line-height:1.5; }
         <select id="dep-vehicle-select"><option value="">選択してください</option></select>
       </div>
     </div>
-    <div class="field"><label>前回帰庁メーター（前回記録より）</label><div class="preset" id="dep-last-meter">-</div></div>
+    <div class="field"><label>前回帰庁メーター（参考・手入力可）</label><input type="number" id="dep-last-meter" placeholder="前回の帰庁メーター" min="0"></div>
   </div>
 
   <div class="card">
@@ -125,7 +125,7 @@ textarea { height:64px; resize:none; line-height:1.5; }
       <div class="field"><label>出発メーター(km)<span class="required">*</span></label><input type="number" id="dep-meter" placeholder="12480" min="0"></div>
     </div>
     <div class="field"><label>行き先<span class="required">*</span></label><input type="text" id="dep-dest" placeholder="例：○○市役所"></div>
-    <div class="field"><label>使用目的<span class="required">*</span></label><input type="text" id="dep-purpose" placeholder="例：会議出席"></div>
+    <div class="field"><label>使用目的</label><input type="text" id="dep-purpose" placeholder="例：会議出席"></div>
     <div class="row2">
       <div class="field"><label>搭乗人数</label><select id="dep-passengers"><option value="1名">1名</option><option value="2名">2名</option><option value="3名">3名</option><option value="4名以上">4名以上</option></select></div>
       <div class="field"><label>燃料残量</label><select id="dep-fuel"><option value="半分以上">半分以上</option><option value="半分未満">半分未満</option></select></div>
@@ -295,7 +295,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   } else {
     document.getElementById("dep-qr-info").style.display = "none";
     document.getElementById("dep-vehicle-select-wrap").style.display = "";
-    document.getElementById("dep-last-meter").textContent = "車両を選択してください";
+    document.getElementById("dep-last-meter").value = "";
+      document.getElementById("dep-last-meter").placeholder = "車両を選択後に自動取得";
   }
 
   // 【変更②③】帰庁後の車両エリアを初期設定
@@ -320,7 +321,8 @@ window.addEventListener("DOMContentLoaded", async () => {
       await loadLastMeter();
     } else {
       currentVehicleId = currentVehicleName = currentVehicleNum = "";
-      document.getElementById("dep-last-meter").textContent = "車両を選択してください";
+      document.getElementById("dep-last-meter").value = "";
+      document.getElementById("dep-last-meter").placeholder = "車両を選択後に自動取得";
     }
   });
 
@@ -341,8 +343,12 @@ window.addEventListener("DOMContentLoaded", async () => {
   });
 
   // モード切替（アルコール専用QR: ?mode=alc）
+  // ※ loadMasters完了後に切り替えることでプルダウンが確実に表示される
   if (urlParams.get("mode") === "alc") {
     switchPage("alc");
+    // ナビも確実に切り替え
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById("nav-alc").classList.add("active");
   }
 });
 
@@ -392,12 +398,12 @@ async function loadLastMeter() {
     const el = document.getElementById("dep-last-meter");
     if (data.lastMeter && data.lastMeter > 0) {
       depMeter = data.lastMeter;
-      el.innerHTML = Number(data.lastMeter).toLocaleString() + " km" +
-        ' <span class="preset-note">自動取得</span>';
+      el.value = data.lastMeter;
     } else {
-      el.innerHTML = "記録なし（初回）" + ' <span class="preset-note">自動取得</span>';
+      el.value = "";
+      el.placeholder = "記録なし（初回）";
     }
-  } catch(e) { document.getElementById("dep-last-meter").textContent = "取得失敗"; }
+  } catch(e) { document.getElementById("dep-last-meter").placeholder = "取得失敗（手入力してください）"; }
 }
 
 // ============================================================
@@ -462,8 +468,8 @@ async function submitDeparture() {
   const dest    = document.getElementById("dep-dest").value.trim();
   const purpose = document.getElementById("dep-purpose").value.trim();
 
-  if (!name||!dept||!time||!meter||!dest||!purpose) {
-    alert("必須項目（氏名・所属課・出発時刻・出発メーター・行き先・使用目的）を入力してください。"); return;
+  if (!name||!dept||!time||!meter||!dest) {
+    alert("必須項目（氏名・所属課・出発時刻・出発メーター・行き先）を入力してください。"); return;
   }
   // 【変更③】QRなし時はプルダウン選択を確認
   if (!currentVehicleId) { alert("車両を選択してください。"); return; }
