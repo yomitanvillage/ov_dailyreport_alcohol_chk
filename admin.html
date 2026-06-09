@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公用車管理 管理者ダッシュボード｜読谷村役場</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --primary:#1F4E79; --primary-light:#D6E4F0; --primary-mid:#2E75B6;
+  --success:#375623; --success-light:#E2EFDA;
+  --warning:#7B3F00; --warning-light:#FCE4D6;
+  --danger:#C00000;  --danger-light:#FFE2E2;
+  --gray:#595959; --gray-light:#F5F5F5; --border:#D0D0D0;
+  --card-shadow:0 2px 8px rgba(0,0,0,.08);
+  --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Meiryo",sans-serif;background:#EEF2F7;color:#222;font-size:14px;}
+
+/* ヘッダ */
+.header{background:var(--primary);color:#fff;padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:56px;box-shadow:0 2px 6px rgba(0,0,0,.2);}
+.header h1{font-size:18px;font-weight:700;letter-spacing:.03em;}
+.header-sub{font-size:12px;opacity:.75;margin-top:2px;}
+.header-right{font-size:12px;opacity:.7;}
+
+/* フィルタバー */
+.filter-bar{background:#fff;border-bottom:1px solid var(--border);padding:12px 32px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.filter-label{font-size:12px;font-weight:700;color:var(--gray);white-space:nowrap;}
+.filter-bar select{padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;color:#222;background:#fff;min-width:110px;}
+.filter-bar select:focus{outline:none;border-color:var(--primary);}
+.btn{padding:7px 18px;border-radius:6px;border:none;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .15s;}
+.btn:active{opacity:.8;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-outline{background:#fff;color:var(--primary);border:1.5px solid var(--primary);}
+.btn-sm{padding:5px 12px;font-size:12px;}
+.filter-divider{width:1px;height:24px;background:var(--border);margin:0 4px;}
+.filter-info{font-size:12px;color:var(--gray);margin-left:auto;}
+
+/* メインコンテンツ */
+.main{padding:24px 32px;max-width:1400px;margin:0 auto;}
+
+/* セクションタイトル */
+.section-title{font-size:13px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:"";flex:1;height:1px;background:var(--border);}
+
+/* KPIカード */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.kpi-card{background:#fff;border-radius:var(--radius);padding:20px 22px;box-shadow:var(--card-shadow);border-top:4px solid var(--primary);transition:transform .15s;}
+.kpi-card:hover{transform:translateY(-2px);}
+.kpi-card.success{border-color:var(--success);}
+.kpi-card.warning{border-color:#E67E22;}
+.kpi-card.danger{border-color:var(--danger);}
+.kpi-label{font-size:12px;color:var(--gray);margin-bottom:8px;font-weight:600;}
+.kpi-value{font-size:32px;font-weight:700;color:var(--primary);line-height:1;}
+.kpi-card.success .kpi-value{color:var(--success);}
+.kpi-card.warning .kpi-value{color:#E67E22;}
+.kpi-card.danger  .kpi-value{color:var(--danger);}
+.kpi-unit{font-size:14px;font-weight:400;margin-left:4px;color:var(--gray);}
+.kpi-sub{font-size:11px;color:var(--gray);margin-top:6px;}
+
+/* グラフエリア */
+.charts-row{display:grid;gap:16px;margin-bottom:24px;}
+.charts-row.col1{grid-template-columns:1fr;}
+.charts-row.col2{grid-template-columns:1fr 1fr;}
+.charts-row.col3{grid-template-columns:2fr 1fr 1fr;}
+.chart-card{background:#fff;border-radius:var(--radius);padding:20px;box-shadow:var(--card-shadow);}
+.chart-title{font-size:13px;font-weight:700;color:#333;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+.chart-wrap{position:relative;}
+.chart-wrap canvas{max-height:300px;}
+
+/* CSVエクスポートカード */
+.export-card{background:#fff;border-radius:var(--radius);padding:20px 24px;box-shadow:var(--card-shadow);margin-bottom:24px;}
+.export-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.export-section{border:1px solid var(--border);border-radius:8px;padding:16px;}
+.export-section h4{font-size:13px;font-weight:700;margin-bottom:12px;color:var(--primary);}
+.export-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;}
+.export-controls select{padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;flex:1;min-width:90px;}
+.export-note{font-size:11px;color:var(--gray);}
+
+/* データテーブル */
+.table-card{background:#fff;border-radius:var(--radius);padding:20px;box-shadow:var(--card-shadow);margin-bottom:24px;}
+.table-controls{display:flex;gap:8px;margin-bottom:12px;align-items:center;}
+.table-controls input{padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;width:220px;}
+.table-wrap{overflow-x:auto;max-height:380px;overflow-y:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{background:var(--primary);color:#fff;padding:8px 10px;text-align:left;position:sticky;top:0;white-space:nowrap;font-weight:600;}
+td{padding:7px 10px;border-bottom:1px solid var(--border);white-space:nowrap;}
+tr:hover td{background:#F5F8FC;}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+.badge-ok{background:var(--success-light);color:var(--success);}
+.badge-ng{background:var(--danger-light);color:var(--danger);}
+
+/* タブ */
+.tab-bar{display:flex;gap:4px;margin-bottom:16px;border-bottom:2px solid var(--border);}
+.tab{padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;border-radius:6px 6px 0 0;color:var(--gray);border:none;background:none;}
+.tab.active{background:var(--primary);color:#fff;}
+
+/* ローディング */
+.loading{display:flex;align-items:center;justify-content:center;height:200px;color:var(--gray);font-size:14px;gap:12px;}
+.spinner{width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.error-msg{text-align:center;padding:40px;color:var(--danger);}
+
+/* フッタ */
+.footer{text-align:center;padding:20px;font-size:11px;color:var(--gray);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header h1" style="font-size:18px;font-weight:700;">🚗 公用車管理 管理者ダッシュボード</div>
+    <div class="header-sub">読谷村役場 デジタル社会推進課</div>
+  </div>
+  <div class="header-right" id="last-updated">読み込み中...</div>
+</div>
+
+<div class="filter-bar">
+  <span class="filter-label">絞り込み</span>
+  <select id="f-year"><option value="">全期間</option></select>
+  <select id="f-month">
+    <option value="">全月</option>
+    <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+    <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+    <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+    <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+  </select>
+  <select id="f-dept"><option value="">全課</option></select>
+  <button class="btn btn-primary" onclick="applyFilter()">絞り込む</button>
+  <button class="btn btn-outline" onclick="clearFilter()">クリア</button>
+  <div class="filter-divider"></div>
+  <span class="filter-info" id="filter-info"></span>
+</div>
+
+<div class="main">
+
+  <!-- KPIカード -->
+  <div class="section-title">📊 サマリー</div>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">総走行距離</div>
+      <div class="kpi-value" id="kpi-distance">—<span class="kpi-unit">km</span></div>
+      <div class="kpi-sub" id="kpi-distance-sub"></div>
+    </div>
+    <div class="kpi-card success">
+      <div class="kpi-label">延べ利用件数</div>
+      <div class="kpi-value" id="kpi-trips">—<span class="kpi-unit">件</span></div>
+      <div class="kpi-sub" id="kpi-trips-sub"></div>
+    </div>
+    <div class="kpi-card warning">
+      <div class="kpi-label">ALCチェック件数</div>
+      <div class="kpi-value" id="kpi-alc">—<span class="kpi-unit">件</span></div>
+      <div class="kpi-sub" id="kpi-alc-sub"></div>
+    </div>
+    <div class="kpi-card danger">
+      <div class="kpi-label">酒気帯び検出件数</div>
+      <div class="kpi-value" id="kpi-abnormal">—<span class="kpi-unit">件</span></div>
+      <div class="kpi-sub" id="kpi-abnormal-sub"></div>
+    </div>
+  </div>
+
+  <!-- グラフ行1：月別推移 -->
+  <div class="section-title">📈 月別推移</div>
+  <div class="charts-row col1">
+    <div class="chart-card">
+      <div class="chart-title">月別走行距離推移 <span style="font-size:11px;color:var(--gray);font-weight:400;">（単位：km）</span></div>
+      <div class="chart-wrap"><canvas id="chart-monthly"></canvas></div>
+    </div>
+  </div>
+
+  <!-- グラフ行2：課別・車両別 -->
+  <div class="section-title">🏢 課別 / 🚗 車両別分析</div>
+  <div class="charts-row col2">
+    <div class="chart-card">
+      <div class="chart-title">課別走行距離合計</div>
+      <div class="chart-wrap"><canvas id="chart-dept"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">車両別走行距離TOP10</div>
+      <div class="chart-wrap"><canvas id="chart-vehicle"></canvas></div>
+    </div>
+  </div>
+
+  <!-- グラフ行3：アルコールチェック -->
+  <div class="section-title">📋 アルコールチェック分析</div>
+  <div class="charts-row col3">
+    <div class="chart-card">
+      <div class="chart-title">月別アルコールチェック件数</div>
+      <div class="chart-wrap"><canvas id="chart-alc-monthly"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">タイミング別件数</div>
+      <div class="chart-wrap" style="display:flex;align-items:center;justify-content:center;"><canvas id="chart-alc-timing"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">課別チェック件数</div>
+      <div class="chart-wrap"><canvas id="chart-alc-dept"></canvas></div>
+    </div>
+  </div>
+
+  <!-- CSVエクスポート -->
+  <div class="section-title">⬇ CSVエクスポート</div>
+  <div class="export-card">
+    <div class="export-grid">
+      <div class="export-section">
+        <h4>🚗 運転日誌エクスポート</h4>
+        <div class="export-controls">
+          <select id="exp-log-year"><option value="">全期間</option></select>
+          <select id="exp-log-month">
+            <option value="">全月</option>
+            <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+            <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+            <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+            <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+          </select>
+          <select id="exp-log-dept"><option value="">全課</option></select>
+          <button class="btn btn-primary btn-sm" onclick="downloadCSV('log')">CSVダウンロード</button>
+        </div>
+        <div class="export-note">乗務キー・日付・車両・運転者・走行距離などを含むCSVを出力します</div>
+      </div>
+      <div class="export-section">
+        <h4>📋 アルコールチェック記録エクスポート</h4>
+        <div class="export-controls">
+          <select id="exp-alc-year"><option value="">全期間</option></select>
+          <select id="exp-alc-month">
+            <option value="">全月</option>
+            <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+            <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+            <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+            <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+          </select>
+          <select id="exp-alc-dept"><option value="">全課</option></select>
+          <button class="btn btn-primary btn-sm" onclick="downloadCSV('alc')">CSVダウンロード</button>
+        </div>
+        <div class="export-note">記録日時・運転者・検知値・酒気帯び有無などを含むCSVを出力します</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- データテーブル -->
+  <div class="section-title">📄 明細データ</div>
+  <div class="table-card">
+    <div class="tab-bar">
+      <button class="tab active" onclick="switchTab('log',this)">運転日誌</button>
+      <button class="tab" onclick="switchTab('alc',this)">アルコールチェック</button>
+    </div>
+    <div class="table-controls">
+      <input type="text" id="table-search" placeholder="🔍 運転者名・課名・車両名で検索..." oninput="renderTable()">
+      <span id="table-count" style="font-size:12px;color:var(--gray);margin-left:auto;"></span>
+    </div>
+    <div class="table-wrap" id="table-wrap">
+      <div class="loading"><div class="spinner"></div>データ読み込み中...</div>
+    </div>
+  </div>
+
+</div>
+<div class="footer">読谷村役場 公用車管理システム &nbsp;|&nbsp; 管理者専用ダッシュボード</div>
+
+<script>
+// ============================================================
+// 設定
+// ============================================================
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyN1TrCfrKNTKl_NJ7ITvg5J3XgUMSnge_tC0qmo8qp9MJMlMPcWIT1_4sgVZs154f0/exec";
+
+// ============================================================
+// 状態管理
+// ============================================================
+let allData   = { logs: [], alc: [], meta: { allYears: [], allDepts: [], allYearMonths: [] } };
+let filtered  = { logs: [], alc: [] };
+let charts    = {};
+let activeTab = "log";
+
+// ============================================================
+// データ取得
+// ============================================================
+async function gasGet(params) {
+  const url = GAS_URL + "?" + new URLSearchParams(params).toString();
+  const res  = await fetch(url);
+  return res.json();
+}
+
+async function loadData() {
+  try {
+    const data = await gasGet({ action: "getAdminData" });
+    if (!data.success) throw new Error(data.error || "データ取得失敗");
+    allData = data;
+    initFilters();
+    applyFilter();
+    document.getElementById("last-updated").textContent =
+      "最終更新: " + new Date().toLocaleString("ja-JP");
+  } catch(e) {
+    document.getElementById("table-wrap").innerHTML =
+      `<div class="error-msg">⚠ データ取得に失敗しました。<br>${e.message}</div>`;
+  }
+}
+
+// ============================================================
+// フィルタ初期化
+// ============================================================
+function initFilters() {
+  const { allYears, allDepts } = allData.meta;
+
+  const yearSels = ["f-year","exp-log-year","exp-alc-year"];
+  yearSels.forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">全期間</option>';
+    allYears.forEach(y => sel.insertAdjacentHTML("beforeend", `<option value="${y}">${y}年</option>`));
+  });
+
+  const deptSels = ["f-dept","exp-log-dept","exp-alc-dept"];
+  deptSels.forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">全課</option>';
+    allDepts.forEach(d => sel.insertAdjacentHTML("beforeend", `<option value="${d}">${d}</option>`));
+  });
+
+  // 当年を初期選択
+  const cy = String(new Date().getFullYear());
+  if (allYears.includes(cy)) document.getElementById("f-year").value = cy;
+}
+
+// ============================================================
+// フィルタ適用
+// ============================================================
+function applyFilter() {
+  const year  = document.getElementById("f-year").value;
+  const month = document.getElementById("f-month").value;
+  const dept  = document.getElementById("f-dept").value;
+
+  filtered.logs = allData.logs.filter(r => {
+    if (year  && !r.date.startsWith(year))  return false;
+    if (month && r.date.substring(5,7) !== month.padStart(2,"0")) return false;
+    if (dept  && r.dept !== dept)            return false;
+    return true;
+  });
+  filtered.alc = allData.alc.filter(r => {
+    if (year  && !r.date.startsWith(year))  return false;
+    if (month && r.date.substring(5,7) !== month.padStart(2,"0")) return false;
+    if (dept  && r.dept !== dept)            return false;
+    return true;
+  });
+
+  const label = [year ? year+"年" : "全期間", month ? month+"月" : "全月", dept || "全課"].join(" / ");
+  document.getElementById("filter-info").textContent =
+    `表示中: ${label} | 運転${filtered.logs.length}件 / ALC${filtered.alc.length}件`;
+
+  updateKPI();
+  updateCharts();
+  renderTable();
+}
+
+function clearFilter() {
+  ["f-year","f-month","f-dept"].forEach(id => document.getElementById(id).value = "");
+  applyFilter();
+}
+
+// ============================================================
+// KPI更新
+// ============================================================
+function updateKPI() {
+  const logs = filtered.logs;
+  const alc  = filtered.alc;
+
+  const totalDist  = logs.reduce((s, r) => s + r.distance, 0);
+  const abnormal   = alc.filter(r => r.hasAlcohol === "あり").length;
+  const uniqueVeh  = new Set(logs.map(r => r.vehicleId)).size;
+
+  document.getElementById("kpi-distance").innerHTML  = totalDist.toLocaleString() + '<span class="kpi-unit">km</span>';
+  document.getElementById("kpi-trips").innerHTML      = logs.length + '<span class="kpi-unit">件</span>';
+  document.getElementById("kpi-alc").innerHTML        = alc.length  + '<span class="kpi-unit">件</span>';
+  document.getElementById("kpi-abnormal").innerHTML   = abnormal    + '<span class="kpi-unit">件</span>';
+
+  document.getElementById("kpi-distance-sub").textContent = `${uniqueVeh}台が使用`;
+  const avg = logs.length ? (totalDist / logs.length).toFixed(1) : 0;
+  document.getElementById("kpi-trips-sub").textContent     = `1件平均 ${avg} km`;
+  const timings = [...new Set(alc.map(r => r.timing))].join("・");
+  document.getElementById("kpi-alc-sub").textContent        = timings || "—";
+  document.getElementById("kpi-abnormal-sub").textContent   = alc.length ? `検出率 ${((abnormal/alc.length)*100).toFixed(1)}%` : "—";
+}
+
+// ============================================================
+// グラフ更新
+// ============================================================
+const PALETTE = ["#1F4E79","#2E75B6","#4BACC6","#70AD47","#ED7D31","#FFC000","#FF0000","#7030A0","#00B0F0","#92D050"];
+
+function groupBy(arr, key) {
+  return arr.reduce((acc, r) => {
+    const k = r[key] || "不明";
+    acc[k] = (acc[k] || 0) + 1;
+    return acc;
+  }, {});
+}
+function sumBy(arr, groupKey, sumKey) {
+  return arr.reduce((acc, r) => {
+    const k = r[groupKey] || "不明";
+    acc[k] = (acc[k] || 0) + (r[sumKey] || 0);
+    return acc;
+  }, {});
+}
+
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function updateCharts() {
+  const logs = filtered.logs;
+  const alc  = filtered.alc;
+
+  // ── 月別走行距離 ──────────────────────────────────────────
+  destroyChart("monthly");
+  const monthlyDist = sumBy(logs, "yearMonth", "distance");
+  const monthlyTrip = groupBy(logs, "yearMonth");
+  const ymKeys = [...new Set([...Object.keys(monthlyDist), ...Object.keys(monthlyTrip)])].sort();
+  charts["monthly"] = new Chart(document.getElementById("chart-monthly"), {
+    type: "line",
+    data: {
+      labels: ymKeys.map(k => k.replace("-","/")),
+      datasets: [
+        { label: "走行距離(km)", data: ymKeys.map(k => monthlyDist[k]||0),
+          borderColor: "#1F4E79", backgroundColor: "rgba(31,78,121,.1)", fill: true,
+          tension: .3, pointRadius: 4, yAxisID: "y" },
+        { label: "利用件数", data: ymKeys.map(k => monthlyTrip[k]||0),
+          borderColor: "#ED7D31", backgroundColor: "transparent",
+          tension: .3, pointRadius: 4, yAxisID: "y2", borderDash: [5,3] },
+      ]
+    },
+    options: { responsive: true, interaction: { mode: "index" },
+      scales: {
+        y:  { position:"left",  title: { display:true, text:"km" } },
+        y2: { position:"right", title: { display:true, text:"件" }, grid: { drawOnChartArea:false } }
+      },
+      plugins: { legend: { position:"top" } }
+    }
+  });
+
+  // ── 課別走行距離 ──────────────────────────────────────────
+  destroyChart("dept");
+  const deptDist = sumBy(logs, "dept", "distance");
+  const deptKeys = Object.entries(deptDist).sort((a,b) => b[1]-a[1]).map(e => e[0]);
+  charts["dept"] = new Chart(document.getElementById("chart-dept"), {
+    type: "bar",
+    data: {
+      labels: deptKeys,
+      datasets: [{ label: "走行距離(km)", data: deptKeys.map(k => deptDist[k]),
+        backgroundColor: PALETTE, borderRadius: 4 }]
+    },
+    options: { indexAxis:"y", responsive: true,
+      plugins: { legend: { display:false } },
+      scales: { x: { title: { display:true, text:"km" } } }
+    }
+  });
+
+  // ── 車両別走行距離TOP10 ─────────────────────────────────
+  destroyChart("vehicle");
+  const vehDist = sumBy(logs, "vehicleName", "distance");
+  const vehKeys = Object.entries(vehDist).sort((a,b) => b[1]-a[1]).slice(0,10).map(e => e[0]);
+  charts["vehicle"] = new Chart(document.getElementById("chart-vehicle"), {
+    type: "bar",
+    data: {
+      labels: vehKeys,
+      datasets: [{ label: "走行距離(km)", data: vehKeys.map(k => vehDist[k]),
+        backgroundColor: "#2E75B6", borderRadius: 4 }]
+    },
+    options: { indexAxis:"y", responsive: true,
+      plugins: { legend: { display:false } },
+      scales: { x: { title: { display:true, text:"km" } } }
+    }
+  });
+
+  // ── 月別ALC件数 ────────────────────────────────────────
+  destroyChart("alc-monthly");
+  const alcMonOK = {};
+  const alcMonNG = {};
+  alc.forEach(r => {
+    const ym = r.yearMonth || "不明";
+    if (r.hasAlcohol === "あり") alcMonNG[ym] = (alcMonNG[ym]||0) + 1;
+    else                          alcMonOK[ym] = (alcMonOK[ym]||0) + 1;
+  });
+  const alcYMs = [...new Set([...Object.keys(alcMonOK),...Object.keys(alcMonNG)])].sort();
+  charts["alc-monthly"] = new Chart(document.getElementById("chart-alc-monthly"), {
+    type: "bar",
+    data: {
+      labels: alcYMs.map(k => k.replace("-","/")),
+      datasets: [
+        { label: "正常", data: alcYMs.map(k => alcMonOK[k]||0), backgroundColor:"#70AD47", borderRadius:3, stack:"s" },
+        { label: "要注意", data: alcYMs.map(k => alcMonNG[k]||0), backgroundColor:"#FF0000", borderRadius:3, stack:"s" },
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { position:"top" } },
+      scales: { x: { stacked:true }, y: { stacked:true, title:{display:true,text:"件"} } }
+    }
+  });
+
+  // ── タイミング別（ドーナツ） ──────────────────────────────
+  destroyChart("alc-timing");
+  const timingCount = groupBy(alc, "timing");
+  const timingKeys  = Object.keys(timingCount);
+  charts["alc-timing"] = new Chart(document.getElementById("chart-alc-timing"), {
+    type: "doughnut",
+    data: {
+      labels: timingKeys,
+      datasets: [{ data: timingKeys.map(k => timingCount[k]),
+        backgroundColor: ["#2E75B6","#ED7D31","#70AD47"], borderWidth: 2 }]
+    },
+    options: { responsive: true, plugins: { legend: { position:"bottom" } }, cutout:"60%" }
+  });
+
+  // ── 課別ALC件数 ────────────────────────────────────────
+  destroyChart("alc-dept");
+  const alcDeptCount = groupBy(alc, "dept");
+  const alcDeptKeys  = Object.entries(alcDeptCount).sort((a,b) => b[1]-a[1]).map(e => e[0]);
+  charts["alc-dept"] = new Chart(document.getElementById("chart-alc-dept"), {
+    type: "bar",
+    data: {
+      labels: alcDeptKeys,
+      datasets: [{ label: "件数", data: alcDeptKeys.map(k => alcDeptCount[k]),
+        backgroundColor: "#4BACC6", borderRadius: 4 }]
+    },
+    options: { indexAxis:"y", responsive: true,
+      plugins: { legend: { display:false } },
+      scales: { x: { title: { display:true, text:"件" } } }
+    }
+  });
+}
+
+// ============================================================
+// テーブル
+// ============================================================
+function switchTab(tab, btn) {
+  activeTab = tab;
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("table-search").value = "";
+  renderTable();
+}
+
+function renderTable() {
+  const q   = document.getElementById("table-search").value.toLowerCase();
+  const wrap = document.getElementById("table-wrap");
+
+  if (activeTab === "log") {
+    const rows = filtered.logs.filter(r =>
+      !q || [r.driver,r.dept,r.vehicleName,r.destination].some(v => v.toLowerCase().includes(q))
+    );
+    document.getElementById("table-count").textContent = `${rows.length}件`;
+    if (!rows.length) { wrap.innerHTML = "<div class='loading'>該当データがありません</div>"; return; }
+    wrap.innerHTML = `<table>
+      <thead><tr>
+        <th>日付</th><th>車両名</th><th>運転者</th><th>所属課</th>
+        <th>行き先</th><th>出発</th><th>帰庁</th><th style="text-align:right">走行距離</th>
+      </tr></thead>
+      <tbody>${rows.slice(0,300).map(r => `<tr>
+        <td>${r.date}</td><td>${r.vehicleName}</td><td>${r.driver}</td><td>${r.dept}</td>
+        <td>${r.destination}</td><td>${r.departTime}</td><td>${r.returnTime||"—"}</td>
+        <td style="text-align:right;font-weight:600">${r.distance ? r.distance.toLocaleString()+" km" : "—"}</td>
+      </tr>`).join("")}</tbody>
+    </table>${rows.length > 300 ? `<div style="text-align:center;padding:8px;font-size:12px;color:var(--gray)">先頭300件を表示中（全${rows.length}件）</div>` : ""}`;
+  } else {
+    const rows = filtered.alc.filter(r =>
+      !q || [r.driver,r.dept,r.vehicle].some(v => v.toLowerCase().includes(q))
+    );
+    document.getElementById("table-count").textContent = `${rows.length}件`;
+    if (!rows.length) { wrap.innerHTML = "<div class='loading'>該当データがありません</div>"; return; }
+    wrap.innerHTML = `<table>
+      <thead><tr>
+        <th>日付</th><th>タイミング</th><th>運転者</th><th>所属課</th>
+        <th>車両名</th><th style="text-align:right">検知値</th><th>酒気帯び</th><th>確認者</th>
+      </tr></thead>
+      <tbody>${rows.slice(0,300).map(r => `<tr>
+        <td>${r.date}</td><td>${r.timing}</td><td>${r.driver}</td><td>${r.dept}</td>
+        <td>${r.vehicle}</td><td style="text-align:right">${r.alcValue} mg/L</td>
+        <td><span class="badge ${r.hasAlcohol==="あり"?"badge-ng":"badge-ok"}">${r.hasAlcohol||"—"}</span></td>
+        <td>${r.confirmer}</td>
+      </tr>`).join("")}</tbody>
+    </table>${rows.length > 300 ? `<div style="text-align:center;padding:8px;font-size:12px;color:var(--gray)">先頭300件を表示中（全${rows.length}件）</div>` : ""}`;
+  }
+}
+
+// ============================================================
+// CSVダウンロード
+// ============================================================
+async function downloadCSV(type) {
+  const suffix = type === "log" ? "log" : "alc";
+  const year   = document.getElementById(`exp-${suffix}-year`).value;
+  const month  = document.getElementById(`exp-${suffix}-month`).value;
+  const dept   = document.getElementById(`exp-${suffix}-dept`).value;
+
+  try {
+    const data = await gasGet({ action:"exportCSV", type, year, month, dept });
+    if (!data.success) { alert("エクスポート失敗: " + data.error); return; }
+    const blob = new Blob([data.csv], { type:"text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = data.filename;
+    a.click();
+  } catch(e) { alert("通信エラー: " + e.message); }
+}
+
+// ============================================================
+// 起動
+// ============================================================
+loadData();
+</script>
+</body>
+</html>
